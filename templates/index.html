@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+  <head>
+    <title>AI Symptom Checker</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        background: #0f172a;
+        color: white;
+        display: flex;
+        justify-content: center;
+      }
+
+      .chat-container {
+        width: 420px;
+        margin-top: 40px;
+        background: #1e293b;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      }
+
+      h2 {
+        text-align: center;
+      }
+
+      .messages {
+        height: 420px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+        padding: 5px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .msg {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 85%;
+        line-height: 1.4;
+      }
+
+      .user {
+        background: #2563eb;
+        margin-left: auto;
+      }
+
+      .bot {
+        background: #334155;
+      }
+
+      .loading {
+        font-style: italic;
+        opacity: 0.7;
+      }
+
+      .input-row {
+        display: flex;
+      }
+
+      input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        margin-right: 5px;
+      }
+
+      button {
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: none;
+        background: #22c55e;
+        color: white;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #16a34a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <h2>🩺 Symptom Checker</h2>
+
+      <div id="messages" class="messages"></div>
+
+      <div class="input-row">
+        <input id="input" placeholder="Enter symptoms..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+    <script>
+      async function sendMessage() {
+        const input = document.getElementById("input");
+        const messages = document.getElementById("messages");
+
+        const text = input.value;
+        if (!text) return;
+
+        // show user msg
+        messages.innerHTML += `<div class="msg user">${text}</div>`;
+        input.value = "";
+
+        // loading indicator
+        const loadingId = "loading-" + Date.now();
+        messages.innerHTML += `<div id="${loadingId}" class="msg bot loading">Generating response...</div>`;
+        messages.scrollTop = messages.scrollHeight;
+
+        try {
+          const res = await fetch("/chat", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: text }),
+          });
+
+          const data = await res.json();
+
+          // remove loading
+          document.getElementById(loadingId).remove();
+
+          // render markdown properly
+          const formatted = marked.parse(data.reply);
+
+          messages.innerHTML += `<div class="msg bot">${formatted}</div>`;
+          messages.scrollTop = messages.scrollHeight;
+        } catch (err) {
+          document.getElementById(loadingId).innerText =
+            "Error getting response.";
+        }
+      }
+    </script>
+  </body>
+</html>
