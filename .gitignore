@@ -1,0 +1,4 @@
+/templates
+.env
+.env.local
+.env*.local
