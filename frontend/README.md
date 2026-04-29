@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CareConnectHub AI
 
-## Getting Started
+AI-powered symptom checker and emergency triage assistant. Tell us how you're feeling — we'll help you understand what's next, clearly, calmly, and without the guesswork.
 
-First, run the development server:
+## Quickstart
 
 ```bash
+cd frontend
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Description | Status |
+|---|---|---|
+| `/` | Landing page | Static UI |
+| `/check` | Symptom input (pill toggle + free text) | Static UI |
+| `/result` | Severity badge, conditions, precautions | Static UI |
+| `/history` | Symptom check history | Placeholder |
+| `/login` | Sign-in form | Static UI |
+| `/signup` | Registration form | Static UI |
+| `/hospital-nearby` | Interactive map + location | Static UI |
+| `/admin` | Admin dashboard | Placeholder |
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js 16 App Router
+- **Language:** TypeScript (strict)
+- **Styling:** Tailwind CSS v4 + shadcn/ui
+- **Maps:** `@mapcn/map` (MapLibre GL, no API key required)
+- **Icons:** Lucide React
+- **Font:** Inter (Google Fonts)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design system
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Yellow palette — primary `#F5C518`, background `#FFFEF5`. Full token reference in [`../templates/colors_and_type.css`](../templates/colors_and_type.css). Interactive prototype in [`../templates/ui_kits/web_app/index.html`](../templates/ui_kits/web_app/index.html).
 
-## Deploy on Vercel
+## Roadmap
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Prompt 2** — Supabase auth (login, signup, session management)
+2. **Prompt 3** — AI symptom analysis (Claude API integration)
+3. **Prompt 4** — Geolocation + live hospital search
+4. **Prompt 5** — Admin dashboard with usage analytics
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+> **Medical disclaimer:** CareConnectHub AI is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.

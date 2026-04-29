@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  
+  <rect width="40" height="40" x="4" y="4" rx="10" fill="#2563EB"></rect>
+  
+  <polyline points="8,24 14,24 17,16 20,32 23,20 26,24 32,24 36,24" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></polyline>
+  
+  <text x="54" y="21" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#0F172A" letter-spacing="-0.3">CareConnect</text>
+  <text x="54" y="37" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="500" fill="#2563EB" letter-spacing="0.5">HUB AI</text>
+</svg>

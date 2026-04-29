@@ -1,26 +1,124 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.833);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.333);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 2);
+
+  /* CareConnectHub yellow palette tokens */
+  --color-brand-bg: #FFFEF5;
+  --color-brand-surface: #FEFCE8;
+  --color-brand-primary: #F5C518;
+  --color-brand-primary-dark: #D4A810;
+  --color-brand-primary-light: #FDE68A;
+  --color-brand-primary-faint: #FEFCE8;
+  --color-brand-heading: #1C1A0F;
+  --color-brand-body: #57522A;
+  --color-brand-muted: #A39A5C;
+  --color-sev-low: #16A34A;
+  --color-sev-low-bg: #DCFCE7;
+  --color-sev-low-text: #15803D;
+  --color-sev-mod: #D97706;
+  --color-sev-mod-bg: #FEF3C7;
+  --color-sev-mod-text: #B45309;
+  --color-sev-high: #DC2626;
+  --color-sev-high-bg: #FEE2E2;
+  --color-sev-high-text: #B91C1C;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #FFFEF5;
+  --foreground: #1C1A0F;
+  --card: #FFFFFF;
+  --card-foreground: #1C1A0F;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1A0F;
+  --primary: #F5C518;
+  --primary-foreground: #1C1A0F;
+  --secondary: #FEFCE8;
+  --secondary-foreground: #1C1A0F;
+  --muted: #FEFCE8;
+  --muted-foreground: #A39A5C;
+  --accent: #FDE68A;
+  --accent-foreground: #1C1A0F;
+  --destructive: #DC2626;
+  --border: #FDE68A;
+  --input: #FDE68A;
+  --ring: #F5C518;
+  --radius: 0.75rem;
+  --chart-1: #F5C518;
+  --chart-2: #D4A810;
+  --chart-3: #16A34A;
+  --chart-4: #D97706;
+  --chart-5: #DC2626;
+  --sidebar: #FFFEF5;
+  --sidebar-foreground: #1C1A0F;
+  --sidebar-primary: #F5C518;
+  --sidebar-primary-foreground: #1C1A0F;
+  --sidebar-accent: #FDE68A;
+  --sidebar-accent-foreground: #1C1A0F;
+  --sidebar-border: #FDE68A;
+  --sidebar-ring: #F5C518;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), "Inter", "DM Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-wrap: pretty;
+  }
+  html {
+    @apply font-sans;
+  }
+  .maplibregl-popup-content {
+    @apply bg-transparent! shadow-none! p-0! rounded-none!;
+  }
+  .maplibregl-popup-tip {
+    @apply hidden!;
+  }
 }
