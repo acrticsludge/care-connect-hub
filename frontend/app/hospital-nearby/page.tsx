@@ -299,7 +299,7 @@ export default function HospitalNearbyPage() {
   const mapZoom = userCoords ? 13 : 1.5;
 
   return (
-    <div className="pt-16 flex flex-col" style={{ minHeight: "100vh" }}>
+    <div className="pt-16">
       {/* Header */}
       <PageShell className="pb-4 pt-8">
         <h1 className="text-[28px] font-bold text-[#1C1A0F] tracking-[-0.02em] mb-1">
@@ -311,7 +311,7 @@ export default function HospitalNearbyPage() {
       </PageShell>
 
       {/* Map container */}
-      <div className="flex-1 relative min-h-[420px] mx-4 md:mx-8 mb-6 rounded-2xl overflow-hidden border border-[#FDE68A]">
+      <div className="relative h-[420px] mx-4 md:mx-8 mb-6 rounded-2xl overflow-hidden border border-[#FDE68A]">
         <Map
           theme="light"
           center={mapCenter}
