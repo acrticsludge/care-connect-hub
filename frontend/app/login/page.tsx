@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageShell } from "@/components/page-shell";
+import { signIn } from "./actions";
 
-export default function LoginPage() {
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // TODO: Supabase auth in later prompt
-  }
+interface Props {
+  searchParams: Promise<{ error?: string; message?: string; redirectTo?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: Props) {
+  const { error, message, redirectTo } = await searchParams;
 
   return (
     <PageShell className="flex flex-col items-center justify-center min-h-[80vh]">
@@ -38,13 +38,28 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {error && (
+              <div className="mb-4 rounded-lg border border-[#FECACA] bg-[#FEE2E2] px-4 py-3 text-[13px] text-[#B91C1C]">
+                {error}
+              </div>
+            )}
+            {message && (
+              <div className="mb-4 rounded-lg border border-[#FDE68A] bg-[#FEFCE8] px-4 py-3 text-[13px] text-[#57522A]">
+                {message}
+              </div>
+            )}
+
+            <form action={signIn} className="flex flex-col gap-5">
+              {redirectTo && (
+                <input type="hidden" name="redirectTo" value={redirectTo} />
+              )}
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="email" className="text-[13px] font-medium text-[#57522A]">
                   Email address
                 </Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
@@ -58,6 +73,7 @@ export default function LoginPage() {
                 </Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="••••••••"
                   autoComplete="current-password"

@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,12 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageShell } from "@/components/page-shell";
+import { signUp } from "./actions";
 
-export default function SignupPage() {
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // TODO: Supabase auth in later prompt
-  }
+interface Props {
+  searchParams: Promise<{ error?: string }>;
+}
+
+export default async function SignupPage({ searchParams }: Props) {
+  const { error } = await searchParams;
 
   return (
     <PageShell className="flex flex-col items-center justify-center min-h-[80vh]">
@@ -38,13 +38,19 @@ export default function SignupPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {error && (
+              <div className="mb-4 rounded-lg border border-[#FECACA] bg-[#FEE2E2] px-4 py-3 text-[13px] text-[#B91C1C]">
+                {error}
+              </div>
+            )}
+            <form action={signUp} className="flex flex-col gap-5">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="name" className="text-[13px] font-medium text-[#57522A]">
                   Full name
                 </Label>
                 <Input
                   id="name"
+                  name="name"
                   type="text"
                   placeholder="Your name"
                   autoComplete="name"
@@ -58,6 +64,7 @@ export default function SignupPage() {
                 </Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
@@ -71,6 +78,7 @@ export default function SignupPage() {
                 </Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="Min. 8 characters"
                   autoComplete="new-password"
@@ -85,6 +93,7 @@ export default function SignupPage() {
                 </Label>
                 <Input
                   id="confirm"
+                  name="confirm"
                   type="password"
                   placeholder="Repeat password"
                   autoComplete="new-password"

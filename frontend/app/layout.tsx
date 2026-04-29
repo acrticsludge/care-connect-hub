@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/nav-bar";
 import { DisclaimerBar } from "@/components/disclaimer-bar";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -16,15 +17,20 @@ export const metadata: Metadata = {
     "AI-powered symptom checker and emergency triage assistant. Understand your symptoms clearly, calmly, and without the guesswork.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-screen flex flex-col bg-brand-bg text-brand-body">
-        <NavBar />
+        <NavBar user={user ? { id: user.id, email: user.email } : null} />
         <main className="flex-1">{children}</main>
         <DisclaimerBar />
       </body>

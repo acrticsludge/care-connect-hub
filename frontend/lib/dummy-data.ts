@@ -1,5 +1,47 @@
 export type Severity = "LOW" | "MODERATE" | "HIGH";
 
+export type AICondition = {
+  name: string;
+  probability: number;
+  description: string;
+};
+
+export type AnalyzeResult = {
+  red_flag: boolean;
+  possible_conditions: AICondition[];
+  severity: "low" | "moderate" | "high";
+  immediate_actions: string;
+  precautions: string;
+  specialist: string;
+  disclaimer: string;
+};
+
+export const RED_FLAG_PATTERNS: Array<{ keywords: string[]; label: string }> = [
+  { keywords: ["chest pain", "sweating"], label: "Chest pain with sweating" },
+  { keywords: ["chest pain", "left arm"], label: "Chest pain with arm pain" },
+  { keywords: ["chest pain", "jaw"], label: "Chest pain with jaw pain" },
+  { keywords: ["cannot breathe"], label: "Breathing emergency" },
+  { keywords: ["can't breathe"], label: "Breathing emergency" },
+  { keywords: ["not breathing"], label: "Breathing emergency" },
+  { keywords: ["facial drooping"], label: "Possible stroke" },
+  { keywords: ["face drooping"], label: "Possible stroke" },
+  { keywords: ["face is drooping"], label: "Possible stroke" },
+  { keywords: ["arm weakness", "speech"], label: "Possible stroke" },
+  { keywords: ["sudden confusion"], label: "Possible stroke" },
+  { keywords: ["severe bleeding"], label: "Severe bleeding" },
+  { keywords: ["unresponsive"], label: "Loss of consciousness" },
+  { keywords: ["unconscious"], label: "Loss of consciousness" },
+  { keywords: ["passed out"], label: "Loss of consciousness" },
+  { keywords: ["seizure"], label: "Seizure" },
+  { keywords: ["heart attack"], label: "Cardiac emergency" },
+  { keywords: ["stroke"], label: "Possible stroke" },
+  { keywords: ["suicidal"], label: "Mental health emergency" },
+  { keywords: ["overdose"], label: "Overdose emergency" },
+  { keywords: ["anaphylaxis"], label: "Severe allergic reaction" },
+  { keywords: ["throat closing"], label: "Severe allergic reaction" },
+  { keywords: ["throat is closing"], label: "Severe allergic reaction" },
+];
+
 export type Condition = {
   condition: string;
   subtext: string;

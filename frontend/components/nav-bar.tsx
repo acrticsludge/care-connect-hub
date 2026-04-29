@@ -2,11 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, Menu, Activity } from "lucide-react";
+import { ArrowLeft, Menu, Activity, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { signOut } from "@/app/signout/actions";
+
+interface NavUser {
+  id: string;
+  email?: string;
+}
+
+interface NavBarProps {
+  user?: NavUser | null;
+}
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -15,7 +25,7 @@ const NAV_LINKS = [
   { href: "/hospital-nearby", label: "Hospitals" },
 ];
 
-export function NavBar() {
+export function NavBar({ user }: NavBarProps) {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -68,16 +78,40 @@ export function NavBar() {
 
       {/* Desktop auth CTAs */}
       <div className="hidden md:flex items-center gap-2">
-        <Button asChild variant="outline" size="sm" className="border-[#FDE68A] text-[#57522A] hover:bg-[#FEFCE8]">
-          <Link href="/login">Sign in</Link>
-        </Button>
-        <Button
-          asChild
-          size="sm"
-          className="bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] shadow-[0_2px_8px_rgba(245,197,24,0.50)]"
-        >
-          <Link href="/signup">Sign up</Link>
-        </Button>
+        {user ? (
+          <>
+            <Button asChild variant="ghost" size="sm" className="text-[#57522A] hover:bg-[#FEFCE8] gap-1.5">
+              <Link href="/profile">
+                <User size={15} strokeWidth={1.5} />
+                Profile
+              </Link>
+            </Button>
+            <form action={signOut}>
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="border-[#FDE68A] text-[#57522A] hover:bg-[#FEFCE8] gap-1.5"
+              >
+                <LogOut size={14} strokeWidth={1.5} />
+                Sign out
+              </Button>
+            </form>
+          </>
+        ) : (
+          <>
+            <Button asChild variant="outline" size="sm" className="border-[#FDE68A] text-[#57522A] hover:bg-[#FEFCE8]">
+              <Link href="/login">Sign in</Link>
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] shadow-[0_2px_8px_rgba(245,197,24,0.50)]"
+            >
+              <Link href="/signup">Sign up</Link>
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Mobile hamburger */}
@@ -110,15 +144,38 @@ export function NavBar() {
               ))}
             </div>
             <div className="flex flex-col gap-2 px-1">
-              <Button asChild variant="outline" className="border-[#FDE68A] text-[#57522A] min-h-[48px]">
-                <Link href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
-              </Button>
-              <Button
-                asChild
-                className="bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] min-h-[48px] shadow-[0_2px_8px_rgba(245,197,24,0.50)]"
-              >
-                <Link href="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
-              </Button>
+              {user ? (
+                <>
+                  <Button asChild variant="outline" className="border-[#FDE68A] text-[#57522A] min-h-[48px] gap-2">
+                    <Link href="/profile" onClick={() => setMobileOpen(false)}>
+                      <User size={15} strokeWidth={1.5} />
+                      Profile
+                    </Link>
+                  </Button>
+                  <form action={signOut} className="w-full">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      className="w-full border-[#FDE68A] text-[#57522A] min-h-[48px] gap-2"
+                    >
+                      <LogOut size={14} strokeWidth={1.5} />
+                      Sign out
+                    </Button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <Button asChild variant="outline" className="border-[#FDE68A] text-[#57522A] min-h-[48px]">
+                    <Link href="/login" onClick={() => setMobileOpen(false)}>Sign in</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] min-h-[48px] shadow-[0_2px_8px_rgba(245,197,24,0.50)]"
+                  >
+                    <Link href="/signup" onClick={() => setMobileOpen(false)}>Sign up</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </SheetContent>
