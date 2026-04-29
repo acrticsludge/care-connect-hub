@@ -292,11 +292,10 @@ export default function HospitalNearbyPage() {
     [doFetch],
   );
 
-  const showMap = status === "ready" || status === "fetching" || status === "fetch-error";
   const mapCenter: [number, number] = userCoords
     ? [userCoords.lon, userCoords.lat]
-    : [0, 20];
-  const mapZoom = userCoords ? 13 : 1.5;
+    : [78.9629, 20.5937]; // Default to India center
+  const mapZoom = userCoords ? 13 : 5;
 
   return (
     <div className="pt-16">
@@ -419,22 +418,20 @@ export default function HospitalNearbyPage() {
       </div>
 
       {/* Legend */}
-      {showMap && (
-        <div className="mx-4 md:mx-8 mb-4 flex items-center gap-5 flex-wrap">
-          <span className="flex items-center gap-1.5 text-[12px] text-[#57522A]">
-            <span className="w-3 h-3 rounded-full bg-[#DC2626] border border-white shadow-sm" />
-            Hospital
-          </span>
-          <span className="flex items-center gap-1.5 text-[12px] text-[#57522A]">
-            <span className="w-3 h-3 rounded-full bg-[#D4A810] border border-white shadow-sm" />
-            Clinic
-          </span>
-          <span className="flex items-center gap-1.5 text-[12px] text-[#57522A]">
-            <span className="w-3 h-3 rounded-full bg-[#2563EB] border border-white shadow-sm" />
-            Your location
-          </span>
-        </div>
-      )}
+      <div className="mx-4 md:mx-8 mb-4 flex items-center gap-5 flex-wrap">
+        <span className="flex items-center gap-1.5 text-[12px] text-[#57522A]">
+          <span className="w-3 h-3 rounded-full bg-[#DC2626] border border-white shadow-sm" />
+          Hospital
+        </span>
+        <span className="flex items-center gap-1.5 text-[12px] text-[#57522A]">
+          <span className="w-3 h-3 rounded-full bg-[#D4A810] border border-white shadow-sm" />
+          Clinic
+        </span>
+        <span className="flex items-center gap-1.5 text-[12px] text-[#57522A]">
+          <span className="w-3 h-3 rounded-full bg-[#2563EB] border border-white shadow-sm" />
+          Your location
+        </span>
+      </div>
 
       {/* Hospital list */}
       {status === "ready" && (
