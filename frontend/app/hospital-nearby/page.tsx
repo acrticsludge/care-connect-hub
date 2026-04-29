@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   MapPin,
@@ -81,6 +81,7 @@ function travelMinutes(distKm: number): number {
 async function fetchHospitals(
   lat: number,
   lon: number,
+  signal: AbortSignal,
 ): Promise<Hospital[]> {
   const query = `[out:json][timeout:15];
 (
@@ -95,6 +96,7 @@ out center;`;
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `data=${encodeURIComponent(query)}`,
+    signal,
   });
 
   if (!res.ok) {
@@ -163,6 +165,7 @@ function HospitalMarker({ hospital }: { hospital: Hospital }) {
             href={`https://www.google.com/maps/search/?api=1&query=${hospital.lat},${hospital.lon}`}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`Open ${hospital.name} in Google Maps`}
             className="inline-flex items-center gap-1 text-[12px] text-[#D4A810] hover:underline font-medium"
           >
             <ExternalLink size={11} strokeWidth={2} />
@@ -238,8 +241,26 @@ export default function HospitalNearbyPage() {
     lon: number;
   } | null>(null);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const locate = useCallback(async () => {
+  const doFetch = useCallback(async (lat: number, lon: number) => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setStatus("fetching");
+    try {
+      const results = await fetchHospitals(lat, lon, controller.signal);
+      if (!controller.signal.aborted) {
+        setHospitals(results);
+        setStatus("ready");
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      setStatus("fetch-error");
+    }
+  }, []);
+
+  const locate = useCallback(() => {
     setStatus("locating");
 
     if (!("geolocation" in navigator)) {
@@ -248,42 +269,27 @@ export default function HospitalNearbyPage() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         setUserCoords({ lat, lon });
-        setStatus("fetching");
-
-        try {
-          const results = await fetchHospitals(lat, lon);
-          setHospitals(results);
-          setStatus("ready");
-        } catch {
-          setStatus("fetch-error");
-        }
+        void doFetch(lat, lon);
       },
       () => {
         setStatus("geo-denied");
       },
       { timeout: 10000, maximumAge: 60000 },
     );
-  }, []);
+  }, [doFetch]);
 
   const handleRelocate = useCallback(
-    async (coords: { longitude: number; latitude: number }) => {
+    (coords: { longitude: number; latitude: number }) => {
       const lat = coords.latitude;
       const lon = coords.longitude;
       setUserCoords({ lat, lon });
-      setStatus("fetching");
-      try {
-        const results = await fetchHospitals(lat, lon);
-        setHospitals(results);
-        setStatus("ready");
-      } catch {
-        setStatus("fetch-error");
-      }
+      void doFetch(lat, lon);
     },
-    [],
+    [doFetch],
   );
 
   const showMap = status === "ready" || status === "fetching" || status === "fetch-error";
