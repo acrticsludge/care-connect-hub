@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
   MapPin,
@@ -235,13 +235,14 @@ function HospitalListItem({
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function HospitalNearbyPage() {
-  const [status, setStatus] = useState<Status>("idle");
+  const [status, setStatus] = useState<Status>("locating");
   const [userCoords, setUserCoords] = useState<{
     lat: number;
     lon: number;
   } | null>(null);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const hasLocatedRef = useRef(false);
 
   const doFetch = useCallback(async (lat: number, lon: number) => {
     abortRef.current?.abort();
@@ -292,6 +293,13 @@ export default function HospitalNearbyPage() {
     [doFetch],
   );
 
+  // Auto-request location on mount
+  useEffect(() => {
+    if (hasLocatedRef.current) return;
+    hasLocatedRef.current = true;
+    locate();
+  }, [locate]);
+
   const mapCenter: [number, number] = userCoords
     ? [userCoords.lon, userCoords.lat]
     : [78.9629, 20.5937]; // Default to India center
@@ -331,29 +339,6 @@ export default function HospitalNearbyPage() {
               <HospitalMarker key={h.id} hospital={h} />
             ))}
         </Map>
-
-        {/* Location permission overlay */}
-        {status === "idle" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#FFFEF5]/80 backdrop-blur-sm z-10">
-            <div className="bg-white border border-[#FDE68A] rounded-2xl px-6 py-6 flex flex-col items-center gap-3 shadow-[0_4px_16px_rgba(245,197,24,0.18)] max-w-[280px] text-center">
-              <div className="w-12 h-12 bg-[#FEFCE8] border border-[#FDE68A] rounded-xl flex items-center justify-center">
-                <MapPin size={22} strokeWidth={1.5} className="text-[#D4A810]" />
-              </div>
-              <div className="text-[15px] font-semibold text-[#1C1A0F]">
-                Enable location
-              </div>
-              <div className="text-[13px] text-[#57522A] leading-relaxed">
-                Allow location access to find hospitals near you.
-              </div>
-              <Button
-                onClick={locate}
-                className="w-full bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] shadow-[0_2px_8px_rgba(245,197,24,0.50)] min-h-[48px]"
-              >
-                Enable location
-              </Button>
-            </div>
-          </div>
-        )}
 
         {/* Locating / fetching spinner overlay */}
         {(status === "locating" || status === "fetching") && (
