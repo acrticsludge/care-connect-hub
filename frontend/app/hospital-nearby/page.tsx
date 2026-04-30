@@ -479,50 +479,50 @@ export default function HospitalNearbyPage() {
             </div>
           </div>
         )}
+      </div>
 
-        {/* Location picker modal */}
-        {showLocationPicker && (
-          <div className="absolute inset-0 bg-[#FFFEF5]/90 backdrop-blur-sm z-20 flex items-center justify-center p-4">
-            <div className="bg-white border border-[#FDE68A] rounded-2xl shadow-lg w-full max-w-md">
-              <div className="flex items-center justify-between p-4 border-b border-[#FDE68A]">
-                <div className="text-[16px] font-bold text-[#1C1A0F]">Select location</div>
+      {/* Location picker modal - outside map container to avoid overflow:hidden */}
+      {showLocationPicker && (
+        <div className="fixed inset-0 bg-[#1C1A0F]/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#FDE68A] rounded-2xl shadow-xl w-full max-w-sm max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-[#FDE68A] shrink-0">
+              <div className="text-[16px] font-bold text-[#1C1A0F]">Select location</div>
+              <button
+                onClick={() => setShowLocationPicker(false)}
+                className="p-2 hover:bg-[#FEFCE8] rounded-lg transition-colors"
+                aria-label="Close location picker"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#57522A]">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-3 grid grid-cols-2 gap-2 overflow-y-auto">
+              {PRESET_CITIES.map((city) => (
                 <button
-                  onClick={() => setShowLocationPicker(false)}
-                  className="p-2 hover:bg-[#FEFCE8] rounded-lg transition-colors"
-                  aria-label="Close location picker"
+                  key={city.name}
+                  onClick={() => handleSetManualLocation(city.lat, city.lon, city.name)}
+                  className="flex flex-col items-start p-3 rounded-xl border border-[#FDE68A] hover:bg-[#FEFCE8] hover:border-[#D4A810] transition-colors text-left"
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#57522A]">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
+                  <div className="text-[14px] font-semibold text-[#1C1A0F]">{city.name}</div>
+                  <div className="text-[11px] text-[#57522A]">
+                    {city.lat.toFixed(2)}°N, {city.lon.toFixed(2)}°E
+                  </div>
                 </button>
-              </div>
-              <div className="p-4 grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto">
-                {PRESET_CITIES.map((city) => (
-                  <button
-                    key={city.name}
-                    onClick={() => handleSetManualLocation(city.lat, city.lon, city.name)}
-                    className="flex flex-col items-start p-3 rounded-xl border border-[#FDE68A] hover:bg-[#FEFCE8] hover:border-[#D4A810] transition-colors text-left"
-                  >
-                    <div className="text-[14px] font-semibold text-[#1C1A0F]">{city.name}</div>
-                    <div className="text-[11px] text-[#57522A]">
-                      {city.lat.toFixed(2)}°N, {city.lon.toFixed(2)}°E
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <div className="p-4 border-t border-[#FDE68A]">
-                <Button
-                  onClick={handleUseMyLocation}
-                  className="w-full bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] min-h-[48px] gap-2"
-                >
-                  <Navigation size={16} strokeWidth={2} />
-                  Use my current location
-                </Button>
-              </div>
+              ))}
+            </div>
+            <div className="p-3 border-t border-[#FDE68A] shrink-0">
+              <Button
+                onClick={handleUseMyLocation}
+                className="w-full bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] min-h-[48px] gap-2"
+              >
+                <Navigation size={16} strokeWidth={2} />
+                Use my current location
+              </Button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Legend */}
       <div className="mx-4 md:mx-8 mb-4 flex items-center gap-5 flex-wrap">
