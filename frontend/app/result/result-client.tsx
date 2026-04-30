@@ -11,17 +11,152 @@ import {
   MapPin,
   ArrowLeft,
   ShieldAlert,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/page-shell";
 import { SeverityBadge } from "@/components/severity-badge";
 import { ConfidenceBar } from "@/components/confidence-bar";
+import { createClient } from "@/lib/supabase/client";
 import type { AnalyzeResult, Severity } from "@/lib/dummy-data";
 
 function severityUpper(s: string): Severity {
   const up = s.toUpperCase();
   if (up === "LOW" || up === "MODERATE" || up === "HIGH") return up;
   return "MODERATE";
+}
+
+async function generatePdf(opts: {
+  result: AnalyzeResult;
+  symptoms: string;
+  userEmail: string;
+  userAge: string;
+}) {
+  const { jsPDF } = await import("jspdf");
+  const { result, symptoms, userEmail, userAge } = opts;
+
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 48;
+  const contentW = pageW - margin * 2;
+  let y = margin;
+
+  const LINE_H = 14;
+
+  function addText(
+    text: string,
+    cfg: { size?: number; bold?: boolean; align?: "left" | "center" } = {}
+  ) {
+    const { size = 10, bold = false, align = "left" } = cfg;
+    doc.setFontSize(size);
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    if (align === "center") {
+      doc.text(text, pageW / 2, y, { align: "center" });
+    } else {
+      doc.text(text, margin, y);
+    }
+    y += LINE_H * (size / 10);
+  }
+
+  function addWrapped(text: string, cfg: { size?: number; bold?: boolean } = {}) {
+    const { size = 10, bold = false } = cfg;
+    doc.setFontSize(size);
+    doc.setFont("helvetica", bold ? "bold" : "normal");
+    const lines = doc.splitTextToSize(text, contentW) as string[];
+    doc.text(lines, margin, y);
+    y += lines.length * LINE_H * (size / 10) + 2;
+  }
+
+  function addRule() {
+    y += 6;
+    doc.setDrawColor(180, 180, 180);
+    doc.line(margin, y, pageW - margin, y);
+    y += 10;
+  }
+
+  function addSection(title: string) {
+    y += 4;
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(80, 80, 80);
+    doc.text(title.toUpperCase(), margin, y);
+    doc.setTextColor(0, 0, 0);
+    y += LINE_H + 2;
+  }
+
+  // Header
+  addText("CareConnect Health Summary", { size: 18, bold: true, align: "center" });
+  y += 4;
+  addText(
+    new Date().toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+    { size: 9, align: "center" }
+  );
+  y += 4;
+  addRule();
+
+  // Patient info
+  addSection("Patient Information");
+  if (userEmail) addText(`Email: ${userEmail}`, { size: 10 });
+  if (userAge) addText(`Age: ${userAge}`, { size: 10 });
+  if (!userEmail && !userAge) addText("No profile information available.", { size: 10 });
+  y += 4;
+
+  // Symptoms
+  addSection("Symptoms Reported");
+  if (symptoms) {
+    addWrapped(symptoms, { size: 10 });
+  } else {
+    addText("Not recorded.", { size: 10 });
+  }
+  y += 4;
+
+  // Severity
+  addSection("Overall Severity");
+  addText(result.severity.toUpperCase(), { size: 12, bold: true });
+  y += 4;
+
+  // Conditions
+  if (result.possible_conditions.length > 0) {
+    addSection("Possible Conditions");
+    result.possible_conditions.forEach((cond) => {
+      addText(`${cond.name}  —  ${cond.probability}%`, { size: 10, bold: true });
+      if (cond.description) {
+        addWrapped(cond.description, { size: 9 });
+      }
+      y += 3;
+    });
+  }
+
+  // Precautions
+  if (result.precautions) {
+    addSection("Precautions");
+    addWrapped(result.precautions, { size: 10 });
+    y += 4;
+  }
+
+  // Specialist
+  if (result.specialist) {
+    addSection("Specialist Recommendation");
+    addWrapped(result.specialist, { size: 10 });
+    y += 4;
+  }
+
+  // Disclaimer
+  addRule();
+  addSection("Medical Disclaimer");
+  doc.setTextColor(80, 80, 80);
+  addWrapped(
+    result.disclaimer ||
+      "These results are for informational purposes only and are not a medical diagnosis. Always consult a qualified healthcare provider for medical advice, diagnosis, or treatment.",
+    { size: 9 }
+  );
+  doc.setTextColor(0, 0, 0);
+
+  doc.save("careconnect-health-summary.pdf");
 }
 
 function EmergencyScreen({ actions }: { actions?: string }) {
@@ -116,7 +251,17 @@ function NoResultScreen() {
   );
 }
 
-function AnalysisScreen({ result }: { result: AnalyzeResult }) {
+function AnalysisScreen({
+  result,
+  symptoms,
+  userEmail,
+  userAge,
+}: {
+  result: AnalyzeResult;
+  symptoms: string;
+  userEmail: string;
+  userAge: string;
+}) {
   const sev = severityUpper(result.severity);
   const conditionCount = result.possible_conditions.length;
 
@@ -258,9 +403,17 @@ function AnalysisScreen({ result }: { result: AnalyzeResult }) {
           </Link>
         </Button>
         <Button
+          variant="outline"
+          className="border-2 border-[#FDE68A] text-[#1C1A0F] hover:bg-[#FEFCE8] gap-2 min-h-[48px]"
+          onClick={() => generatePdf({ result, symptoms, userEmail, userAge })}
+        >
+          <FileDown size={16} strokeWidth={2} />
+          Download Report
+        </Button>
+        <Button
           asChild
           variant="outline"
-          className="border-2 border-[#F5C518] text-[#1C1A0F] hover:bg-[#FEFCE8] min-h-[48px]"
+          className="border-2 border-[#FDE68A] text-[#1C1A0F] hover:bg-[#FEFCE8] min-h-[48px]"
         >
           <Link href="/history">View history</Link>
         </Button>
@@ -272,23 +425,39 @@ function AnalysisScreen({ result }: { result: AnalyzeResult }) {
 export function ResultClient() {
   const searchParams = useSearchParams();
   const isRedflag = searchParams.get("redflag") === "true";
-  // undefined = not yet hydrated; null = hydrated, no data found
   const [result, setResult] = useState<AnalyzeResult | null | undefined>(undefined);
+  const [symptoms, setSymptoms] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [userAge, setUserAge] = useState<string>("");
 
   useEffect(() => {
     const stored = sessionStorage.getItem("ccr_analysis");
+    const storedSymptoms = sessionStorage.getItem("ccr_symptoms") ?? "";
+    setSymptoms(storedSymptoms);
+
     if (!stored) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResult(null);
       return;
     }
     try {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResult(JSON.parse(stored) as AnalyzeResult);
     } catch {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResult(null);
     }
+
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      setUserEmail(user.email ?? "");
+      supabase
+        .from("profiles")
+        .select("age")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.age) setUserAge(String(data.age));
+        });
+    });
   }, []);
 
   // Hydrating — render nothing to avoid SSR/sessionStorage mismatch flash
@@ -298,5 +467,12 @@ export function ResultClient() {
     return <EmergencyScreen actions={result?.immediate_actions} />;
   }
   if (!result) return <NoResultScreen />;
-  return <AnalysisScreen result={result} />;
+  return (
+    <AnalysisScreen
+      result={result}
+      symptoms={symptoms}
+      userEmail={userEmail}
+      userAge={userAge}
+    />
+  );
 }

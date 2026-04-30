@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Mic, Activity, Loader2, AlertCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { saveCheck } from "@/app/history/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +29,21 @@ export default function CheckPage() {
   const [duration, setDuration] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("profiles")
+        .select("age")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.age) setAge(String(data.age));
+        });
+    });
+  }, []);
 
   function toggle(symptom: string) {
     setSelected((prev) => {
@@ -54,10 +71,10 @@ export default function CheckPage() {
     setError(null);
 
     if (checkRedFlag(fullText)) {
-      sessionStorage.setItem(
-        "ccr_analysis",
-        JSON.stringify({ red_flag: true, possible_conditions: [], severity: "high" }),
-      );
+      const redFlagResult = { red_flag: true, possible_conditions: [], severity: "high" as const, immediate_actions: "", precautions: "", specialist: "", disclaimer: "" };
+      sessionStorage.setItem("ccr_analysis", JSON.stringify(redFlagResult));
+      sessionStorage.setItem("ccr_symptoms", fullText);
+      await saveCheck(fullText, redFlagResult);
       router.push("/result?redflag=true");
       return;
     }
@@ -76,6 +93,9 @@ export default function CheckPage() {
       }
 
       sessionStorage.setItem("ccr_analysis", JSON.stringify(data));
+      sessionStorage.setItem("ccr_symptoms", fullText);
+
+      await saveCheck(fullText, data);
 
       if (data.red_flag) {
         router.push("/result?redflag=true");
