@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { Search } from "lucide-react";
 import Link from "next/link";
 import {
   MapPin,
@@ -243,6 +244,12 @@ export default function HospitalNearbyPage() {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const hasLocatedRef = useRef(false);
+  const [manualLocation, setManualLocation] = useState<{
+    name: string;
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   const doFetch = useCallback(async (lat: number, lon: number) => {
     abortRef.current?.abort();
@@ -288,33 +295,105 @@ export default function HospitalNearbyPage() {
       const lat = coords.latitude;
       const lon = coords.longitude;
       setUserCoords({ lat, lon });
+      setManualLocation(null);
+      sessionStorage.removeItem("hospital_manual_location");
       void doFetch(lat, lon);
     },
     [doFetch],
   );
 
-  // Auto-request location on mount
+  const handleSetManualLocation = useCallback((lat: number, lon: number, name: string) => {
+    const location = { name, lat, lon };
+    setManualLocation(location);
+    setUserCoords({ lat, lon });
+    sessionStorage.setItem("hospital_manual_location", JSON.stringify(location));
+    void doFetch(lat, lon);
+    setShowLocationPicker(false);
+  }, [doFetch]);
+
+  const handleUseMyLocation = useCallback(() => {
+    setManualLocation(null);
+    sessionStorage.removeItem("hospital_manual_location");
+    locate();
+  }, [locate]);
+
+  // Auto-request location on mount (only if no manual location set)
   useEffect(() => {
     if (hasLocatedRef.current) return;
     hasLocatedRef.current = true;
+
+    // Check sessionStorage for manual location
+    const stored = sessionStorage.getItem("hospital_manual_location");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setManualLocation(parsed);
+        setUserCoords({ lat: parsed.lat, lon: parsed.lon });
+        void doFetch(parsed.lat, parsed.lon);
+        return;
+      } catch {
+        sessionStorage.removeItem("hospital_manual_location");
+      }
+    }
+
     locate();
-  }, [locate]);
+  }, [locate, doFetch]);
 
   const mapCenter: [number, number] = userCoords
     ? [userCoords.lon, userCoords.lat]
     : [78.9629, 20.5937]; // Default to India center
   const mapZoom = userCoords ? 13 : 5;
 
+  // Preset cities for manual location picker
+  const PRESET_CITIES = [
+    { name: "Delhi", lat: 28.6139, lon: 77.2090 },
+    { name: "Mumbai", lat: 19.0760, lon: 72.8777 },
+    { name: "Bangalore", lat: 12.9716, lon: 77.5946 },
+    { name: "Chennai", lat: 13.0827, lon: 80.2707 },
+    { name: "Kolkata", lat: 22.5726, lon: 88.3639 },
+    { name: "Hyderabad", lat: 17.3850, lon: 78.4867 },
+    { name: "Pune", lat: 18.5204, lon: 73.8567 },
+    { name: "Ahmedabad", lat: 23.0225, lon: 72.5714 },
+    { name: "Jaipur", lat: 26.9124, lon: 75.7873 },
+    { name: "Lucknow", lat: 26.8467, lon: 80.9462 },
+  ];
+
   return (
     <div className="pt-16">
       {/* Header */}
       <PageShell className="pb-4 pt-8">
-        <h1 className="text-[28px] font-bold text-[#1C1A0F] tracking-[-0.02em] mb-1">
-          Hospitals near you
-        </h1>
-        <p className="text-[15px] text-[#57522A] leading-relaxed">
-          Find hospitals and clinics in your area using your device location.
-        </p>
+        <div className="flex items-start justify-between gap-4 mb-1">
+          <div>
+            <h1 className="text-[28px] font-bold text-[#1C1A0F] tracking-[-0.02em] mb-1">
+              Hospitals near you
+            </h1>
+            <p className="text-[15px] text-[#57522A] leading-relaxed">
+              Find hospitals and clinics in your area using your device location.
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {manualLocation && (
+              <div className="text-[12px] text-[#D4A810] font-medium bg-[#FEFCE8] border border-[#FDE68A] rounded-lg px-3 py-1.5 flex items-center gap-2">
+                <Search size={12} strokeWidth={2} />
+                Showing: {manualLocation.name}
+                <button
+                  onClick={handleUseMyLocation}
+                  className="ml-1 text-[11px] text-[#57522A] hover:text-[#1C1A0F] underline"
+                >
+                  Use my location
+                </button>
+              </div>
+            )}
+            <Button
+              onClick={() => setShowLocationPicker(true)}
+              variant="outline"
+              className="border-[#FDE68A] text-[#57522A] hover:bg-[#FEFCE8] gap-2 min-h-[40px] h-auto"
+            >
+              <Search size={14} strokeWidth={1.5} />
+              Change location
+            </Button>
+          </div>
+        </div>
       </PageShell>
 
       {/* Map container */}
@@ -397,6 +476,49 @@ export default function HospitalNearbyPage() {
                 <RotateCcw size={14} strokeWidth={2} />
                 Retry
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Location picker modal */}
+        {showLocationPicker && (
+          <div className="absolute inset-0 bg-[#FFFEF5]/90 backdrop-blur-sm z-20 flex items-center justify-center p-4">
+            <div className="bg-white border border-[#FDE68A] rounded-2xl shadow-lg w-full max-w-md">
+              <div className="flex items-center justify-between p-4 border-b border-[#FDE68A]">
+                <div className="text-[16px] font-bold text-[#1C1A0F]">Select location</div>
+                <button
+                  onClick={() => setShowLocationPicker(false)}
+                  className="p-2 hover:bg-[#FEFCE8] rounded-lg transition-colors"
+                  aria-label="Close location picker"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[#57522A]">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-4 grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto">
+                {PRESET_CITIES.map((city) => (
+                  <button
+                    key={city.name}
+                    onClick={() => handleSetManualLocation(city.lat, city.lon, city.name)}
+                    className="flex flex-col items-start p-3 rounded-xl border border-[#FDE68A] hover:bg-[#FEFCE8] hover:border-[#D4A810] transition-colors text-left"
+                  >
+                    <div className="text-[14px] font-semibold text-[#1C1A0F]">{city.name}</div>
+                    <div className="text-[11px] text-[#57522A]">
+                      {city.lat.toFixed(2)}°N, {city.lon.toFixed(2)}°E
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="p-4 border-t border-[#FDE68A]">
+                <Button
+                  onClick={handleUseMyLocation}
+                  className="w-full bg-[#F5C518] text-[#1C1A0F] font-bold hover:bg-[#D4A810] min-h-[48px] gap-2"
+                >
+                  <Navigation size={16} strokeWidth={2} />
+                  Use my current location
+                </Button>
+              </div>
             </div>
           </div>
         )}
